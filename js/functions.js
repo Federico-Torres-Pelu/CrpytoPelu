@@ -1,3 +1,36 @@
+/************************************ CLASES ************************************/
+class Wallet {
+    constructor (wallet) {
+        this.currency = wallet.currency;
+        this.amount = wallet.amount;
+    }
+
+    comprar(cantidad) {
+        this.amount = this.amount + cantidad;
+    }
+    
+    vender(cantidad) {
+        this.amount = this.amount - cantidad;
+    }
+}
+
+class Currency {
+    constructor (currency) {
+        this.name = currency.name;
+        this.symbol = currency.symbol;
+        this.price = currency.price;
+    }
+    
+    calcularCotizacionCompra() {
+        return this.price * (100 + spread) / 100;
+    }
+
+    calcularCotizacionVenta() {
+        return this.price * (100 - spread) / 100;
+    }
+}
+
+
 
 /************************************ VARIABLES ************************************/
 // SPREAD -> NÚMERO ENTERO QUE INDICA EL SPREAD DE LAS CRYPTO
@@ -7,17 +40,20 @@ let spread = 5;
 // SIMBOLO
 // CANTIDAD -> NÚMERO FLOTANTE
 // HISTORIAL DE TRANSACCIONES (NICE TO HAVE) -> LISTADO DE STRING (PARA NO COMPLEJIZARLA)
-let billeteraUsd = 5000;
-let billeteraBtc = 0.17;
-let billeteraEth = 0;
-let billeteraBnb = 0;
-
 // LISTADO DE DIVISAS
-// SIMBOLO
-// COTIZACIÓN
-let cotizacionBtc = 29950.20;
-let cotizacionEth = 1812.35;
-let cotizacionBnb = 300.21;
+const divisas = [
+    new Currency({ name: "Dólar", symbol: "USD", price: 1 }),
+    new Currency({ name: "Bitcoin", symbol: "BTC", price: 29950.20 }),
+    new Currency({ name: "Ethereum", symbol: "ETH", price: 1812.35 }),
+    new Currency({ name: "BNB", symbol: "BNB", price: 300.21 })
+];
+
+const wallets = [
+    new Wallet({ currency: divisas.find(divisa => divisa.symbol === "USD"), amount: 5000 }),
+    new Wallet({ currency: divisas.find(divisa => divisa.symbol === "BTC"), amount: 0.17 }),
+    new Wallet({ currency: divisas.find(divisa => divisa.symbol === "ETH"), amount: 0 }),
+    new Wallet({ currency: divisas.find(divisa => divisa.symbol === "BNB"), amount: 0 })
+];
 
 /************************************ SECCIÓN DE USUARIO ************************************/
 /* Método MostrarTenencia
@@ -25,13 +61,14 @@ Descripción: Muestra la tenencia del usuario
 Output: Listado de divisas del usuario
 */
 const verTenencia = () => {
-    alert(`
-    TU TENCENCIA DE DIVISAS
-    Saldo en Dólares (USD): $${billeteraUsd}
-    Saldo en Bitcoin (BTC): ${billeteraBtc}BTC
-    Saldo en Ethereum (ETH): ${billeteraEth}ETH
-    Saldo en BNB (BNB): ${billeteraBnb}BNB
-    `);
+
+    let texto = "TU TENCENCIA DE DIVISAS\r\n";
+
+    wallets.forEach(listado =>
+        texto += `Saldo en ${listado.currency.name}: ${listado.amount} ${listado.currency.symbol}\r\n`
+    );
+
+    alert(texto);
 }
 
 /* Método: OperarDivisa
@@ -76,29 +113,40 @@ const operarCryptoDivisas = () => {
 }
 
 const ingresarMontoAOperar = (simbolo, operacion) => {
-    let cotizacionOperacion = calcularCotizacion(simbolo, operacion);
-    let operacionMaxima;
-    if(operacion === "COMPRAR"){
-        operacionMaxima = billeteraUsd / cotizacionOperacion;
-    }else{
-        operacionMaxima = obtenerTenencia(simbolo);
-    }
+    let currency = divisas.find(d => d.symbol === simbolo);
+    let walletUsd = wallets.find(w => w.currency.symbol === "USD");
 
-    let monto = Number(prompt(`
-    Usted va a ${operacion.toLowerCase()} ${simbolo}
-    Cotización: $${cotizacionOperacion}
-    El máximo que puede ${operacion.toLowerCase()} es de: ${operacionMaxima}
-    Ingrese el monto en ${simbolo} a ${operacion.toLowerCase()}
-    `))
-
-    let montoNumber = parsearNumeroFlotante(monto);
-
-    if(montoNumber > 0){
-        operarDivisa(simbolo, operacion, montoNumber);
+    if(currency !== null){
+        let cotizacionOperacion;
+        let operacionMaxima;
+        if(operacion === "COMPRAR"){
+            cotizacionOperacion = currency.calcularCotizacionCompra();
+            operacionMaxima = walletUsd.amount / cotizacionOperacion;
+        }else{
+            cotizacionOperacion = currency.calcularCotizacionVenta();
+            operacionMaxima = obtenerTenencia(simbolo);
+        }
+    
+        let monto = Number(prompt(`
+        Usted va a ${operacion.toLowerCase()} ${simbolo}
+        Cotización: $${cotizacionOperacion}
+        El máximo que puede ${operacion.toLowerCase()} es de: ${operacionMaxima}
+        Ingrese el monto en ${simbolo} a ${operacion.toLowerCase()}
+        `))
+    
+        let montoNumber = parsearNumeroFlotante(monto);
+    
+        if(montoNumber > 0){
+            operarDivisa(simbolo, operacion, montoNumber);
+        }
+        else{
+            alert("El monto a operar debe ser mayor a 0");
+        }
     }
     else{
-        alert("El monto a operar debe ser mayor a 0");
+        alert("La divisa ingresada no está disponible para operar.");
     }
+
 }
 
 
@@ -114,86 +162,64 @@ const operarDivisa = (simbolo, operacion, monto) => {
 }
 
 const operarCompraDivisa  = (simbolo, monto) => {
-    let cotizacion = calcularCotizacionCompra(simbolo);
-    let montoAComprarEnUsd = cotizacion*monto;
+    let wallet = wallets.find(w => w.currency.symbol === simbolo);
+    let walletUsd = wallets.find(w => w.currency.symbol === "USD");
 
-    // VALIDACIONES
-    if((simbolo !== "BTC") && (simbolo !== "ETH") && (simbolo !== "BNB")){
-        alert("La crypto ingresada no está disponible para operar.");
-        return;
+    if(wallet !== null){
+        let cotizacion = wallet.currency.calcularCotizacionCompra();
+        let montoAComprarEnUsd = cotizacion*monto;
+
+        // VALIDACIONES
+        if((simbolo !== "BTC") && (simbolo !== "ETH") && (simbolo !== "BNB")){
+            alert("La crypto ingresada no está disponible para operar.");
+            return;
+        }
+
+        if(walletUsd.amount < montoAComprarEnUsd){
+            alert("No tiene suficientes USD para realizar la compra deseada.");
+            return;
+        }
+
+        // PROCESAR OPERACION DE COMPRA
+        walletUsd.vender(montoAComprarEnUsd);
+        wallet.comprar(monto);
+
+        // NOTIFICACIÓN DE ÉXITO
+        alert(`
+            Ha comprado correctamente ${monto} ${simbolo} por $${montoAComprarEnUsd} 
+        `)
     }
-
-    if(billeteraUsd < montoAComprarEnUsd){
-        alert("No tiene suficientes USD para realizar la compra deseada.");
-        return;
-    }
-
-    // PROCESAR OPERACION DE COMPRA
-    billeteraUsd = (billeteraUsd -  montoAComprarEnUsd);
-    switch(simbolo){
-        case "BTC":
-            billeteraBtc = (billeteraBtc + monto);
-            break;
-        case "ETH":
-            billeteraEth = (billeteraEth + monto);
-            break;
-        case "BNB":
-            billeteraBnb = (billeteraBnb + monto);
-            break;
-    }
-
-    // NOTIFICACIÓN DE ÉXITO
-    alert(`
-        Ha comprado correctamente ${monto} ${simbolo} por $${montoAComprarEnUsd} 
-    `)
 }
 
 const operarVentaDivisa  = (simbolo, monto) => {
-    let cotizacion = calcularCotizacionVenta(simbolo);
-    let montoAVenderEnUsd = cotizacion*monto;
-    let montoEnBilletera;
+    let wallet = wallets.find(w => w.currency.symbol === simbolo);
+    let walletUsd = wallets.find(w => w.currency.symbol === "USD");
 
-    // VALIDACIONES
-    if((simbolo !== "BTC") && (simbolo !== "ETH") && (simbolo !== "BNB")){
-        alert("La crypto ingresada no está disponible para operar.");
-        return;
+    if(wallet !== null){
+        let cotizacion = wallet.currency.calcularCotizacionVenta();
+        let montoAVenderEnUsd = cotizacion*monto;
+        let montoEnBilletera = wallet.amount;
+
+        // VALIDACIONES
+        if((simbolo !== "BTC") && (simbolo !== "ETH") && (simbolo !== "BNB")){
+            alert("La crypto ingresada no está disponible para operar.");
+            return;
+        }
+
+        if(montoEnBilletera < monto){
+            alert(`No tiene suficientes ${simbolo} para realizar la venta deseada.`);
+            return;
+        }
+
+        // PROCESAR OPERACION DE VENTA
+        wallet.vender(monto);
+        walletUsd.comprar(montoAVenderEnUsd);
+
+        // NOTIFICACIÓN DE ÉXITO
+        alert(`
+            Ha vendido correctamente ${monto} ${simbolo} por $${montoAVenderEnUsd} 
+        `)
     }
-
-    switch(simbolo){
-        case "BTC":
-            montoEnBilletera = billeteraBtc;
-            break;
-        case "ETH":
-            montoEnBilletera = billeteraEth;
-            break;
-        case "BNB":
-            montoEnBilletera = billeteraBnb;
-            break;
-    }
-    if(montoEnBilletera < monto){
-        alert(`No tiene suficientes ${simbolo} para realizar la venta deseada.`);
-        return;
-    }
-
-
-    // PROCESAR OPERACION DE VENTA
-    switch(simbolo){
-        case "BTC":
-            billeteraBtc = (billeteraBtc - monto);
-            break;
-        case "ETH":
-            billeteraEth = (billeteraEth - monto);
-            break;
-        case "BNB":
-            billeteraBnb = (billeteraBnb - monto);
-            break;
-    }
-    billeteraUsd = (billeteraUsd + montoAVenderEnUsd);
-
-    // NOTIFICACIÓN DE ÉXITO
-    alert(`
-        Ha vendido correctamente ${monto} ${simbolo} por $${montoAVenderEnUsd} 
-    `)
 }
 
 const parsearNumeroFlotante  = (numberString) => {
@@ -234,19 +260,12 @@ Precio de compra = Cotización * (100 + Spread) / 100
 Precio de venta = Cotización * (100 - Spread) / 100
 */
 const calcularCotizacionCompra = (simbolo) => {
-    let cotizacion = 0;
-    switch (simbolo) {
-        case "BTC":
-            cotizacion = cotizacionBtc * (100 + spread) / 100;
-            break;
-        case "ETH":
-            cotizacion = cotizacionEth * (100 + spread) / 100;
-            break;
-        case "BNB":
-            cotizacion = cotizacionBnb * (100 + spread) / 100;
-            break;
+    let currency = divisas.find(c => c.symbol === simbolo);
+    if(currency !== null){
+        return currency.calcularCotizacionCompra();
     }
-    return cotizacion;
+
+    return -1;
 }
 
 const calcularCotizacionVenta = (simbolo) => {
@@ -280,38 +299,25 @@ const calcularCotizacion = (simbolo, operacion) => {
 
 const verCotizaciones = () => {
 
-    let cotizacionBtcCompra = calcularCotizacion("BTC", "COMPRAR");
-    let cotizacionBtcVenta = calcularCotizacion("BTC", "VENDER");
-    let cotizacionEthCompra = calcularCotizacion("ETH", "COMPRAR");
-    let cotizacionEthVenta = calcularCotizacion("ETH", "VENDER");
-    let cotizacionBnbCompra = calcularCotizacion("BNB", "COMPRAR");
-    let cotizacionBnbVenta = calcularCotizacion("BNB", "VENDER");
+    let texto = "COTIZACIÓN DE CRYPTODIVISAS\r\n";
 
-    alert(`
-    COTIZACIÓN DE CRYPTODIVISAS
-    Bitcoin (BTC) - Precio de compra: $${cotizacionBtcCompra}
-    Bitcoin (BTC) - Precio de venta: $${cotizacionBtcVenta}
-    Ethereum (ETH) - Precio de compra: $${cotizacionEthCompra}
-    Ethereum (ETH) - Precio de venta: $${cotizacionEthVenta}
-    BNB (BNB) - Precio de compra: $${cotizacionBnbCompra}
-    BNB (BNB) - Precio de venta: $${cotizacionBnbVenta}
-    `);
+    divisas.forEach(listado => {
+            if(listado.symbol !== "USD"){
+                texto += `${listado.name} (${listado.symbol}) - Precio de compra: $${listado.calcularCotizacionCompra()} \r\n`
+                + `${listado.name} (${listado.symbol}) - Precio de venta: $${listado.calcularCotizacionVenta()} \r\n`
+            }
+        }
+    );
+
+    alert(texto);
 }
 
 const obtenerTenencia = (simbolo) => {
-    let tenencia = 0;
-    switch (simbolo) {
-        case "BTC":
-            tenencia = billeteraBtc;
-            break;
-        case "ETH":
-            tenencia = billeteraEth;
-            break;
-        case "BNB":
-            tenencia = billeteraBnb;
-            break;
+    let wallet = wallets.find(w => w.currency.symbol === simbolo);
+    if(wallet !== null){
+        return wallet.amount;
     }
-    return tenencia;
+    return 0;
 }
 
 
