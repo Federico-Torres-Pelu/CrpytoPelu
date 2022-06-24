@@ -55,6 +55,26 @@ const wallets = [
     new Wallet({ currency: divisas.find(divisa => divisa.symbol === "BNB"), amount: 0 })
 ];
 
+/************************************ IMPRIMIR WALLET EN HTML ************************************/
+
+const imprimirTenencia = () => {
+
+    // Obtener div de tenencias
+    const billeteraid = document.getElementById('tenencias');   
+
+    let htmlToAdd = "";
+
+    for (const wallet of wallets) {
+        htmlToAdd += `${wallet.currency.name}: ${wallet.amount} ${wallet.currency.symbol}<br />`;
+    }
+
+    billeteraid.innerHTML = htmlToAdd;
+
+}
+
+
+
+
 /************************************ SECCIÓN DE USUARIO ************************************/
 /* Método MostrarTenencia
 Descripción: Muestra la tenencia del usuario
@@ -110,6 +130,8 @@ const operarCryptoDivisas = () => {
             ingresarMontoAOperar("BNB", "VENDER");
             break;
     }
+
+    imprimirTenencia();
 }
 
 const ingresarMontoAOperar = (simbolo, operacion) => {
@@ -357,8 +379,22 @@ Coti: $10.000
 
 */
 
+const setearDivisaAOperar = () => {
+    let divisaAOperar = document.getElementById("divisas");
+    var tenenciaDivisaAOperar = wallets.find(divisa => divisa.symbol === divisaAOperar);
+
+    document.getElementById("titleOperacion").innerHTML = `Operar ${divisaAOperar.currency.name}`;
+}
+
 /* EJECUCIÓN DEL SCRIPT */
-do {
+// Primero imprimimos nuestra tenencia
+imprimirTenencia();
+
+let seleccionarDivisaDropdown = document.getElementById("divisas");
+seleccionarDivisaDropdown.onchange = () => {setearDivisaAOperar()};
+
+/*do {
+
     opcion = Number(prompt(`
     Bienvenidos a Crypto Pelu!
     1-Cargar dinero (No implementada actualmente)
@@ -371,10 +407,6 @@ do {
     `))
 
     switch (opcion) {
-        /*case 1: {
-            cargarDinero();
-            break;
-        }*/
         case 2: {
             verTenencia();
             break;
@@ -397,4 +429,4 @@ do {
         };
 
     }
-} while (opcion !== 5)
+} while (opcion !== 5)*/
