@@ -43,10 +43,10 @@
                         <option value="ETH">Ethereum</option>
                         <option value="BNB">BNB</option>
                     </select>
-                    <div>Precio de compra</div>
-                    <div>Precio de venta</div>
+                    <div id="pCompra">Precio de compra: </div>
+                    <div id="pVenta">Precio de venta: </div>
                 </div>
-                <div class="operacion">
+                <div id="divOperacion" class="operacion hidden">
                     <h5 id="titleOperacion">Operacion</h5>
                     <label for="compraVenta">Selecciona operación:</label>
                     <select name="compraVenta" id="opeCompraVenta">
@@ -54,12 +54,12 @@
                         <option value="Venta">Venta</option>
                     </select>
                     <h5> Ingrese monto </h5>
-                    <input type="number" value="cantidad a operar">
+                    <input id="montoAOperar" type="number" value="cantidad a operar">
                     <div>
-                        <p>"impresion de alerta de cantidad /  precio de operacion"</p>
+                        <p id="textoOperacion"></p>
                     </div>
-                    <button> confirmar operacion </button>
-                    <button> cancelar operacion </button>
+                    <button id="confirmarOperacion"> confirmar operacion </button>
+                    <button id="cancelarOperacion"> cancelar operacion </button>
                 </div>
                 </div>
 
