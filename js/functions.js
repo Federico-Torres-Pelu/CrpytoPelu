@@ -5,12 +5,19 @@ class Wallet {
         this.amount = wallet.amount;
     }
 
-    comprar(cantidad) {
+    agregar(cantidad) { // COMPRE UNIDADES
         this.amount = this.amount + cantidad;
     }
     
-    vender(cantidad) {
+    quitar(cantidad) { // VENDI UNIDADES
         this.amount = this.amount - cantidad;
+    }
+
+    tengoDisponible(cantidad) {
+        if(cantidad > this.amount){
+            return false;
+        }
+        return true;
     }
 }
 
@@ -19,6 +26,14 @@ class Currency {
         this.name = currency.name;
         this.symbol = currency.symbol;
         this.price = currency.price;
+    }
+
+    calcularValorDeCompra(cantidad){
+        return cantidad * this.calcularCotizacionCompra();
+    }
+    
+    calcularValorDeVenta(cantidad){
+        return cantidad * this.calcularCotizacionVenta();
     }
     
     calcularCotizacionCompra() {
@@ -55,172 +70,23 @@ const wallets = [
     new Wallet({ currency: divisas.find(divisa => divisa.symbol === "BNB"), amount: 0 })
 ];
 
-/************************************ SECCIÓN DE USUARIO ************************************/
-/* Método MostrarTenencia
-Descripción: Muestra la tenencia del usuario
-Output: Listado de divisas del usuario
-*/
-const verTenencia = () => {
+/************************************ IMPRIMIR WALLET EN HTML ************************************/
 
-    let texto = "TU TENCENCIA DE DIVISAS\r\n";
+const imprimirTenencia = () => {
 
-    wallets.forEach(listado =>
-        texto += `Saldo en ${listado.currency.name}: ${listado.amount} ${listado.currency.symbol}\r\n`
-    );
+    // Obtener div de tenencias
+    const billeteraid = document.getElementById('tenencias');   
 
-    alert(texto);
-}
+    let htmlToAdd = "";
 
-/* Método: OperarDivisa
-Descripción: En base a el simbolo ingresado, el tipo de operción y el monto vamos a realizar la compra/venta solicitada por el usuario, y
-a su vez, guardar en el historial de transacciones la operación (método GuardarTransaccionDelUsuario).
-VALUDACIONES: Es importante validar: 
-- Al comprar: Que el usuario tenga disponible la cantidad de USD necesarios.
-- Al vender: Que el usuario tenga disponible la cantidad de crpytodivisas necesarias.
-Input: Simbolo, Tipo de operación (Compra/Venta), Monto a comprar (decimal)
-Output: Estado de la operación -> Se ejecutó o no, y si no, el error.
-*/
-const operarCryptoDivisas = () => {
-    let operacion = Number(prompt(`
-    1 - Comprar BTC
-    2 - Vender BTC
-    3 - Comprar ETH
-    4 - Vender ETH
-    5 - Comprar BNB
-    6 - Vender BNB
-    `))
-
-    switch (operacion) {
-        case 1:
-            ingresarMontoAOperar("BTC", "COMPRAR");
-            break;
-        case 2:
-            ingresarMontoAOperar("BTC", "VENDER");
-            break;
-        case 3:
-            ingresarMontoAOperar("ETH", "COMPRAR");
-            break;
-        case 4:
-            ingresarMontoAOperar("ETH", "VENDER");
-            break;
-        case 5:
-            ingresarMontoAOperar("BNB", "COMPRAR");
-            break;
-        case 6:
-            ingresarMontoAOperar("BNB", "VENDER");
-            break;
+    for (const wallet of wallets) {
+        htmlToAdd += `${wallet.currency.name}: ${wallet.amount} ${wallet.currency.symbol}<br />`;
     }
-}
 
-const ingresarMontoAOperar = (simbolo, operacion) => {
-    let currency = divisas.find(d => d.symbol === simbolo);
-    let walletUsd = wallets.find(w => w.currency.symbol === "USD");
-
-    if(currency !== null){
-        let cotizacionOperacion;
-        let operacionMaxima;
-        if(operacion === "COMPRAR"){
-            cotizacionOperacion = currency.calcularCotizacionCompra();
-            operacionMaxima = walletUsd.amount / cotizacionOperacion;
-        }else{
-            cotizacionOperacion = currency.calcularCotizacionVenta();
-            operacionMaxima = obtenerTenencia(simbolo);
-        }
-    
-        let monto = Number(prompt(`
-        Usted va a ${operacion.toLowerCase()} ${simbolo}
-        Cotización: $${cotizacionOperacion}
-        El máximo que puede ${operacion.toLowerCase()} es de: ${operacionMaxima}
-        Ingrese el monto en ${simbolo} a ${operacion.toLowerCase()}
-        `))
-    
-        let montoNumber = parsearNumeroFlotante(monto);
-    
-        if(montoNumber > 0){
-            operarDivisa(simbolo, operacion, montoNumber);
-        }
-        else{
-            alert("El monto a operar debe ser mayor a 0");
-        }
-    }
-    else{
-        alert("La divisa ingresada no está disponible para operar.");
-    }
+    billeteraid.innerHTML = htmlToAdd;
 
 }
 
-
-const operarDivisa = (simbolo, operacion, monto) => {
-    switch(operacion){
-        case "COMPRAR":
-            operarCompraDivisa(simbolo, monto);
-            break;
-        case "VENDER":
-            operarVentaDivisa(simbolo, monto);
-            break;
-    }
-}
-
-const operarCompraDivisa  = (simbolo, monto) => {
-    let wallet = wallets.find(w => w.currency.symbol === simbolo);
-    let walletUsd = wallets.find(w => w.currency.symbol === "USD");
-
-    if(wallet !== null){
-        let cotizacion = wallet.currency.calcularCotizacionCompra();
-        let montoAComprarEnUsd = cotizacion*monto;
-
-        // VALIDACIONES
-        if((simbolo !== "BTC") && (simbolo !== "ETH") && (simbolo !== "BNB")){
-            alert("La crypto ingresada no está disponible para operar.");
-            return;
-        }
-
-        if(walletUsd.amount < montoAComprarEnUsd){
-            alert("No tiene suficientes USD para realizar la compra deseada.");
-            return;
-        }
-
-        // PROCESAR OPERACION DE COMPRA
-        walletUsd.vender(montoAComprarEnUsd);
-        wallet.comprar(monto);
-
-        // NOTIFICACIÓN DE ÉXITO
-        alert(`
-            Ha comprado correctamente ${monto} ${simbolo} por $${montoAComprarEnUsd} 
-        `)
-    }
-}
-
-const operarVentaDivisa  = (simbolo, monto) => {
-    let wallet = wallets.find(w => w.currency.symbol === simbolo);
-    let walletUsd = wallets.find(w => w.currency.symbol === "USD");
-
-    if(wallet !== null){
-        let cotizacion = wallet.currency.calcularCotizacionVenta();
-        let montoAVenderEnUsd = cotizacion*monto;
-        let montoEnBilletera = wallet.amount;
-
-        // VALIDACIONES
-        if((simbolo !== "BTC") && (simbolo !== "ETH") && (simbolo !== "BNB")){
-            alert("La crypto ingresada no está disponible para operar.");
-            return;
-        }
-
-        if(montoEnBilletera < monto){
-            alert(`No tiene suficientes ${simbolo} para realizar la venta deseada.`);
-            return;
-        }
-
-        // PROCESAR OPERACION DE VENTA
-        wallet.vender(monto);
-        walletUsd.comprar(montoAVenderEnUsd);
-
-        // NOTIFICACIÓN DE ÉXITO
-        alert(`
-            Ha vendido correctamente ${monto} ${simbolo} por $${montoAVenderEnUsd} 
-        `)
-    }
-}
 
 const parsearNumeroFlotante  = (numberString) => {
     
@@ -228,37 +94,13 @@ const parsearNumeroFlotante  = (numberString) => {
 
     if(numero === undefined || numero === null || numero === isNaN){
         alert("El monto ingresado debe ser un número");
-        return;
+        return 0;
     }
     
     return numero;
 }
 
 
-/*const ejecutarCompra = (simbolo, ) => {
-
-}*/
-
-/* Método: GuardarTransaccionDelUsuario (Es ejecutado por OperarDivisa)
-Descripción: Muestra el historial de transacciones del usuario
-Output: Listado de transacciones del usuario
-*/
-
-/* Método: MostrarHistorialDeTransaacciones
-Descripción: Muestra el historial de transacciones del usuario
-Output: Listado de transacciones del usuario
-*/
-
-
-/************************************ SECCIÓN COMPARTIDA ***************************************/
-/* Método MostrarCotizacion
-Descripción: Obtener la cotización de compra y venta para una determinada crpyto
-Input: Símbolo de la crpytomoneda (Ej: BTC)
-Lógica: En base a la crypto deseada, se va a devolver el precio de compra y el precio de venta, calculando los mismos utilizando
-la cotización y el spread.
-Precio de compra = Cotización * (100 + Spread) / 100
-Precio de venta = Cotización * (100 - Spread) / 100
-*/
 const calcularCotizacionCompra = (simbolo) => {
     let currency = divisas.find(c => c.symbol === simbolo);
     if(currency !== null){
@@ -268,57 +110,6 @@ const calcularCotizacionCompra = (simbolo) => {
     return -1;
 }
 
-const calcularCotizacionVenta = (simbolo) => {
-    let cotizacion = 0;
-    switch (simbolo) {
-        case "BTC":
-            cotizacion = cotizacionBtc * (100 - spread) / 100;
-            break;
-        case "ETH":
-            cotizacion = cotizacionEth * (100 - spread) / 100;
-            break;
-        case "BNB":
-            cotizacion = cotizacionBnb * (100 - spread) / 100;
-            break;
-    }
-    return cotizacion;
-}
-
-const calcularCotizacion = (simbolo, operacion) => {
-    let cotizacion = 0;
-    switch (operacion) {
-        case "COMPRAR":
-            cotizacion = calcularCotizacionCompra(simbolo);
-            break;
-        case "VENDER":
-            cotizacion = calcularCotizacionVenta(simbolo);
-            break;
-    }
-    return cotizacion;
-}
-
-const verCotizaciones = () => {
-
-    let texto = "COTIZACIÓN DE CRYPTODIVISAS\r\n";
-
-    divisas.forEach(listado => {
-            if(listado.symbol !== "USD"){
-                texto += `${listado.name} (${listado.symbol}) - Precio de compra: $${listado.calcularCotizacionCompra()} \r\n`
-                + `${listado.name} (${listado.symbol}) - Precio de venta: $${listado.calcularCotizacionVenta()} \r\n`
-            }
-        }
-    );
-
-    alert(texto);
-}
-
-const obtenerTenencia = (simbolo) => {
-    let wallet = wallets.find(w => w.currency.symbol === simbolo);
-    if(wallet !== null){
-        return wallet.amount;
-    }
-    return 0;
-}
 
 
 /************************************ SECCIÓN DE ADMINISTRADOR ***************************************/
@@ -357,44 +148,135 @@ Coti: $10.000
 
 */
 
-/* EJECUCIÓN DEL SCRIPT */
-do {
-    opcion = Number(prompt(`
-    Bienvenidos a Crypto Pelu!
-    1-Cargar dinero (No implementada actualmente)
-    2-Ver tenencia
-    3-Ver cotizaciones Crypto
-    4-Operar Crpyto
-    
-    5-Salir
-    
-    `))
+const setearDivisaAOperar = () => {
 
-    switch (opcion) {
-        /*case 1: {
-            cargarDinero();
-            break;
-        }*/
-        case 2: {
-            verTenencia();
-            break;
-        }
-        case 3: {
-            verCotizaciones();
-            break;
-        }
-        case 4: {
-            operarCryptoDivisas();
-            break;
-        }
-        case 5: {
-            alert("Gracias por operar con Crypto Pelu!")
-            break;
-        }
-        default: {
-            alert("dato ingresado no valido")
-            break
-        };
+    let listadoDivisasHtml = document.getElementById("divisas");
+    let divisaSeleccionada = listadoDivisasHtml.options[listadoDivisasHtml.selectedIndex].value; // Esto guarda la seleccion del usuario: BTC, ETH o BNB
 
+    let tenenciaDivisaAOperar = wallets.find(divisa => divisa.currency.symbol === divisaSeleccionada);
+
+    // Actualizo los valores del HTML
+    document.getElementById("divOperacion").classList.remove("hidden");
+    document.getElementById("titleOperacion").innerHTML = `Operar ${tenenciaDivisaAOperar.currency.name}`;
+    document.getElementById("pCompra").innerHTML = `Precio de compra: $${tenenciaDivisaAOperar.currency.calcularCotizacionCompra()}`;
+    document.getElementById("pVenta").innerHTML = `Precio de venta: $${tenenciaDivisaAOperar.currency.calcularCotizacionVenta()}`;
+}
+
+const refreshOperacionDiv = () => {
+    document.getElementById("montoAOperar").value = "";
+    document.getElementById("textoOperacion").innerHTML = "";
+}
+
+const setearDatosOperacion = () => {
+    // Operación seleccionada
+    let listadoOperaciones = document.getElementById("opeCompraVenta");
+    let operacionSeleccionada = listadoOperaciones.options[opeCompraVenta.selectedIndex].value;
+    // Divisa seleccionada
+    let listadoDivisasHtml = document.getElementById("divisas");
+    let divisaSeleccionada = listadoDivisasHtml.options[listadoDivisasHtml.selectedIndex].value;
+    // Monto ingresado
+    let montoAOperarHtml = document.getElementById("montoAOperar");
+
+    // Valores de la oepración
+    let divisa = wallets.find(divisa => divisa.currency.symbol === divisaSeleccionada);
+    let dollars = wallets.find(divisa => divisa.currency.symbol === "USD");
+    let montoOperacion = parsearNumeroFlotante(montoAOperarHtml.value);
+
+    // Actualizo valores a imprimir`
+    let texto = "";
+    
+    if(montoOperacion > 0){
+        if (operacionSeleccionada === "Compra") {
+            var costoDeLaCompra = divisa.currency.calcularValorDeCompra(montoOperacion);
+            var puedeComprar = dollars.tengoDisponible(costoDeLaCompra);
+            if ( puedeComprar ) {
+                texto += `Va a comprar <b>${montoOperacion} ${divisa.currency.symbol}</b> a un precio total de <b>$${costoDeLaCompra}</b>`;
+            }
+            else {
+                texto += "No tiene dolares suficientes para la operación deseada.";
+            }
+        }
+        else { // Venta
+            var costoDeLaVenta = divisa.currency.calcularValorDeVenta(montoOperacion);
+            var puedeVender = divisa.tengoDisponible(montoOperacion);
+            if ( puedeVender ) {
+                texto += `Va a vender <b>${montoOperacion} ${divisa.currency.symbol}</b> a un precio total de <b>$${costoDeLaVenta}</b>`;
+            }
+            else {
+                texto += `No tiene suficientes ${divisa.currency.symbol} para la operación deseada.`;
+            }
+        }
     }
-} while (opcion !== 5)
+
+    document.getElementById("textoOperacion").innerHTML = texto;
+}
+
+const confirmarOperacion = () => {
+    // Operación seleccionada
+    let listadoOperaciones = document.getElementById("opeCompraVenta");
+    let operacionSeleccionada = listadoOperaciones.options[opeCompraVenta.selectedIndex].value;
+    // Divisa seleccionada
+    let listadoDivisasHtml = document.getElementById("divisas");
+    let divisaSeleccionada = listadoDivisasHtml.options[listadoDivisasHtml.selectedIndex].value;
+    // Monto ingresado
+    let montoAOperarHtml = document.getElementById("montoAOperar");
+
+    // Valores de la oepración
+    let divisa = wallets.find(divisa => divisa.currency.symbol === divisaSeleccionada);
+    let dollars = wallets.find(divisa => divisa.currency.symbol === "USD");
+    let montoOperacion = parsearNumeroFlotante(montoAOperarHtml.value);
+
+    // VALIDACIONES ANTES DE OPERAR!!!!!
+    if(montoOperacion === undefined || montoOperacion === null || montoOperacion === 0){
+        return;
+    }
+
+    // Actualizo valores a imprimir`
+    let texto = "";
+    
+    if(montoOperacion > 0){
+        if (operacionSeleccionada === "Compra") {
+            var costoDeLaCompra = divisa.currency.calcularValorDeCompra(montoOperacion);
+            var puedeComprar = dollars.tengoDisponible(costoDeLaCompra);
+            if ( puedeComprar ) {
+                dollars.quitar(costoDeLaCompra);
+                divisa.agregar(montoOperacion);
+                imprimirTenencia();
+                texto += `La operación ha sido exitosa!<br />
+                Ha comprado ${montoOperacion} ${divisa.currency.symbol}</br> a un precio total de <b>$${costoDeLaCompra}</b>`;
+            }
+        }
+        else { // Venta
+            var costoDeLaVenta = divisa.currency.calcularValorDeVenta(montoOperacion);
+            var puedeVender = divisa.tengoDisponible(montoOperacion);
+            if ( puedeVender ) {
+                divisa.quitar(montoOperacion);
+                dollars.agregar(costoDeLaVenta);
+                imprimirTenencia();
+                texto += `La operación ha sido exitosa!<br />
+                Ha vendido <b>${montoOperacion} ${divisa.currency.symbol}</b> a un precio total de <b>$${costoDeLaVenta}</b>`;
+            }
+        }
+    }
+
+    document.getElementById("textoOperacion").innerHTML = texto;
+}
+
+/* EJECUCIÓN DEL SCRIPT */
+// Primero imprimimos nuestra tenencia
+imprimirTenencia();
+
+let seleccionarDivisaDropdown = document.getElementById("divisas");
+seleccionarDivisaDropdown.onchange = () => {setearDivisaAOperar()};
+
+let seleccionarOperacionDropdown = document.getElementById("opeCompraVenta");
+seleccionarOperacionDropdown.onchange = () => {refreshOperacionDiv()};
+
+let ingresarMontoOperacionInput = document.getElementById("montoAOperar");
+ingresarMontoOperacionInput.oninput = () => {setearDatosOperacion()};
+
+let confirmarOperacionButton = document.getElementById("confirmarOperacion");
+confirmarOperacionButton.onclick = () => {confirmarOperacion()};
+
+let cancelarOperacionButton = document.getElementById("cancelarOperacion");
+cancelarOperacionButton.onclick = () => {refreshOperacionDiv()};

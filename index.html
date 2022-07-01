@@ -1,13 +1,77 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Pelu - Encontrá la mejor cotización para comprar y vender tus crypto!</title>
+    <!-- CDN ANIMATE.CSS-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- LOGO FAVICON-->
+    <link rel="shortcut icon" href="assets/logo/pngwing.com.png" type="image/x-icon">
+    <!-- HOJA DE ESTILOS CSS-->
+    <link rel="stylesheet" href="css/estilos.css">
+    <!-- BOOTSTRAP CSS-->
+    <link rel="stylesheet" href="library/bootstrap-5.1.3-dist/css/bootstrap.min.css">
+    <!-- HOJA DE ESTILOS CSS-->
+    <link rel="stylesheet" href="css/estilos.css">
+    
+    <title>Crypto Pelu</title>
 </head>
 <body>
-    
+    <header class="encabezado">
+        <img class="logo" src="assets/logo/pngwing.com.png" alt="logo">
+        <h1 class="titulo">Crypto Pelu - Tu crypto espacio de confianza </h1>
+    </header>
+    <main>
+        <div class="container">
+                <div class="row">
+                <div class="col billetera">
+                <H3>Su Tenencia</H3>
+                <div id="tenencias">
+                    
+                </div>
+                </div>
+
+                <div class="col crypto">
+                <h3>Opere con Crypto monedas</h3>
+                <div class="seleccion">
+                    <h5> Seleccione crypto que desee operar</h5>
+                    <label for="monedas">selecciona moneda:</label>
+                    <select name="monedas" id="divisas">
+                        <option value="" disabled selected>Seleccionar divisa</option>
+                        <option value="BTC">Bitcoin</option>
+                        <option value="ETH">Ethereum</option>
+                        <option value="BNB">BNB</option>
+                    </select>
+                    <div id="pCompra">Precio de compra: </div>
+                    <div id="pVenta">Precio de venta: </div>
+                </div>
+                <div id="divOperacion" class="operacion hidden">
+                    <h5 id="titleOperacion">Operacion</h5>
+                    <label for="compraVenta">Selecciona operación:</label>
+                    <select name="compraVenta" id="opeCompraVenta">
+                        <option value="Compra">Compra</option>
+                        <option value="Venta">Venta</option>
+                    </select>
+                    <h5> Ingrese monto </h5>
+                    <input id="montoAOperar" type="number" value="cantidad a operar">
+                    <div>
+                        <p id="textoOperacion"></p>
+                    </div>
+                    <button id="confirmarOperacion"> confirmar operacion </button>
+                    <button id="cancelarOperacion"> cancelar operacion </button>
+                </div>
+                </div>
+
+
+                <div class="col administrador">
+                <h3>Panel de ADM</h3>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
     <script src="./js/functions.js"></script>
 </body>
 </html>
