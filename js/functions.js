@@ -245,6 +245,9 @@ const confirmarOperacion = () => {
                 texto += `La operación ha sido exitosa!<br />
                 Ha comprado ${montoOperacion} ${divisa.currency.symbol}</br> a un precio total de <b>$${costoDeLaCompra}</b>`;
             }
+            else {
+                texto += "No tiene dolares suficientes para la operación deseada.";
+            }
         }
         else { // Venta
             var costoDeLaVenta = divisa.currency.calcularValorDeVenta(montoOperacion);
@@ -255,6 +258,9 @@ const confirmarOperacion = () => {
                 imprimirTenencia();
                 texto += `La operación ha sido exitosa!<br />
                 Ha vendido <b>${montoOperacion} ${divisa.currency.symbol}</b> a un precio total de <b>$${costoDeLaVenta}</b>`;
+            }
+            else {
+                texto += `No tiene suficientes ${divisa.currency.symbol} para la operación deseada.`;
             }
         }
     }
