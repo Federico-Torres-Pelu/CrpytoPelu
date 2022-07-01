@@ -150,6 +150,8 @@ Coti: $10.000
 
 const setearDivisaAOperar = () => {
 
+    refreshOperacionDiv();
+
     let listadoDivisasHtml = document.getElementById("divisas");
     let divisaSeleccionada = listadoDivisasHtml.options[listadoDivisasHtml.selectedIndex].value; // Esto guarda la seleccion del usuario: BTC, ETH o BNB
 
